@@ -8,10 +8,13 @@
 """
 import os
 import numpy as np
+import json
 from keras import backend
 from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array, array_to_img
 from scipy.misc import imresize
 
+def preprocess_func(x):
+    return x/127.5 - 1.0
 
 class DictImageDataGenerator(ImageDataGenerator):
     def flow_from_dict(self, cls_fp_dict,
@@ -96,6 +99,7 @@ class FlDictIterator(Iterator):
             for i, tmp_fp in enumerate(fp_list):
                 self.filenames.append(tmp_fp)
                 self.classes.append(cls_idx)
+        self.classes = np.array(self.classes)
 
         super(FlDictIterator, self).__init__(self.samples,
                                              batch_size,
@@ -109,7 +113,7 @@ class FlDictIterator(Iterator):
         # build batch of image data
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
-            img = load_img(os.path.join(self.directory, fname),
+            img = load_img(fname,
                            color_mode=self.color_mode
                            )  # resize later
             x = img_to_array(img, data_format=self.data_format)
@@ -151,3 +155,21 @@ class FlDictIterator(Iterator):
         # The transformation of images is not under thread lock
         # so it can be done in parallel
         return self._get_batches_of_transformed_samples(index_array)
+
+
+def get_train_test_data_dict(json_path, test_rate=0.2):
+    all_data_d = json.loads(open(json_path).read())
+    train_d = {}
+    val_d = {}
+    for k in all_data_d:
+        fp_list = all_data_d[k]
+        fp_cnt = len(fp_list)
+        split_idx = int(fp_cnt*test_rate)
+        if split_idx == 0: # low image count
+            train_d[k] = fp_list
+            val_d[k] = fp_list
+        else:
+            train_d[k] = fp_list[split_idx:]
+            val_d[k] = fp_list[:split_idx]
+    return train_d, val_d
+
