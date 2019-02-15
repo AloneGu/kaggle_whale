@@ -13,8 +13,10 @@ from keras import backend
 from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array, array_to_img
 from scipy.misc import imresize
 
+
 def preprocess_func(x):
-    return x/127.5 - 1.0
+    return x / 127.5 - 1.0
+
 
 class DictImageDataGenerator(ImageDataGenerator):
     def flow_from_dict(self, cls_fp_dict,
@@ -123,7 +125,7 @@ class FlDictIterator(Iterator):
                 img.close()
             params = self.image_data_generator.get_random_transform(x.shape)
             x = self.image_data_generator.apply_transform(x, params)
-            x = imresize(x, size=self.target_size, interp=self.interpolation) # resize after random transforms
+            x = imresize(x, size=self.target_size, interp=self.interpolation)  # resize after random transforms
             x = self.image_data_generator.standardize(x)
             batch_x[i] = x
 
@@ -157,15 +159,14 @@ class FlDictIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
 
-def get_train_test_data_dict(json_path, test_rate=0.2):
-    all_data_d = json.loads(open(json_path).read())
+def split_train_test_dict(all_data_d, test_rate=0.2):
     train_d = {}
     val_d = {}
     for k in all_data_d:
         fp_list = all_data_d[k]
         fp_cnt = len(fp_list)
-        split_idx = int(fp_cnt*test_rate)
-        if split_idx == 0: # low image count
+        split_idx = int(fp_cnt * test_rate)
+        if split_idx == 0:  # low image count
             train_d[k] = fp_list
             val_d[k] = fp_list
         else:
@@ -173,3 +174,19 @@ def get_train_test_data_dict(json_path, test_rate=0.2):
             val_d[k] = fp_list[:split_idx]
     return train_d, val_d
 
+
+def get_train_test_data_dict(json_path, test_rate=0.2, use_new_whale=True):
+    all_data_d = json.loads(open(json_path).read())
+    if use_new_whale is False:
+        all_data_d.pop('new_whale')
+    return split_train_test_dict(all_data_d, test_rate)
+
+
+def get_if_new_whale_dict(all_data_d):
+    new_d = {}
+    new_d['not_new_whale'] = []
+    new_d['new_whale'] = all_data_d['new_whale']
+    for k in all_data_d:
+        if k != 'new_whale':
+            new_d['not_new_whale'] += all_data_d[k]
+    return new_d
