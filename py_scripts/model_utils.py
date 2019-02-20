@@ -23,7 +23,7 @@ def get_mobilenet_model(img_size=224, label_cnt=5005, dense_dim=1024):
     x = keras.layers.GlobalAveragePooling2D()(base_model.output)
     if dense_dim is not None:
         x = keras.layers.Dense(dense_dim, activation='relu')(x)
-    x = keras.layers.Dense(label_cnt)(x)
+    x = keras.layers.Dense(label_cnt, activation='softmax')(x)
     model = keras.Model(input_tensor, x)
     return model
 
@@ -32,6 +32,7 @@ def get_callbacks(model_save_path, model=None):
     if os.path.exists(model_save_path):
         if model is not None:
             model.load_weights(model_save_path)
+            print('load pre weights')
     model_dir = os.path.dirname(model_save_path)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)

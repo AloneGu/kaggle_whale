@@ -5,8 +5,8 @@
 
 
 import sys
-sys.path.append('../py_scripts')
 
+sys.path.append('../py_scripts')
 
 # In[2]:
 
@@ -30,7 +30,6 @@ train_d, val_d = split_train_test_dict(if_whale_d)
 print(len(train_d['new_whale']))
 print(len(val_d['new_whale']))
 
-
 # In[3]:
 
 
@@ -45,7 +44,7 @@ train_gen = train_ds.flow_from_dict(train_d, target_size=(
 val_ds = DictImageDataGenerator(preprocessing_function=preprocess_func)
 val_gen = val_ds.flow_from_dict(val_d, target_size=(
     IMG_SIZE, IMG_SIZE), batch_size=BATCH_SIZE)
-val_steps = val_gen.samples//BATCH_SIZE
+val_steps = val_gen.samples // BATCH_SIZE
 print(val_steps)
 # test
 for x, y in train_gen:
@@ -53,13 +52,11 @@ for x, y in train_gen:
     break
 print(train_gen.class_indices)
 
-
 # In[4]:
 
 
 mob_model = get_mobilenet_model(IMG_SIZE, LABEL_CNT, dense_dim=64)
 mob_model.summary()
-
 
 # In[5]:
 
@@ -69,7 +66,6 @@ adam_opt = keras.optimizers.Adam(lr=0.001)
 mob_model.compile(optimizer='adam',
                   loss='categorical_crossentropy', metrics=['acc'])
 print('compile done')
-
 
 # In[6]:
 
@@ -84,4 +80,3 @@ mob_model.fit_generator(
     validation_data=val_gen,
     validation_steps=val_steps
 )
-

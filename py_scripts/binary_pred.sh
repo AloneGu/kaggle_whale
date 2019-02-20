@@ -1,0 +1,1 @@
+python3 gen_model_pred.py --model_path=../data/checkpoints/detect_if_new_whale.h5 --cls_num=2

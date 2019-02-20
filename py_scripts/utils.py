@@ -166,7 +166,7 @@ def split_train_test_dict(all_data_d, test_rate=0.2, duplicate_low_cls=True):
         fp_list = all_data_d[k]
         fp_cnt = len(fp_list)
         split_idx = int(fp_cnt * test_rate)
-        
+
         if split_idx == 0:  # low image count
             if duplicate_low_cls:
                 train_d[k] = fp_list
