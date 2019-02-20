@@ -159,27 +159,32 @@ class FlDictIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
 
-def split_train_test_dict(all_data_d, test_rate=0.2):
+def split_train_test_dict(all_data_d, test_rate=0.2, duplicate_low_cls=True):
     train_d = {}
     val_d = {}
     for k in all_data_d:
         fp_list = all_data_d[k]
         fp_cnt = len(fp_list)
         split_idx = int(fp_cnt * test_rate)
+        
         if split_idx == 0:  # low image count
-            train_d[k] = fp_list
-            val_d[k] = fp_list
+            if duplicate_low_cls:
+                train_d[k] = fp_list
+                val_d[k] = fp_list
+            else:
+                train_d[k] = fp_list
+                val_d[k] = []
         else:
             train_d[k] = fp_list[split_idx:]
             val_d[k] = fp_list[:split_idx]
     return train_d, val_d
 
 
-def get_train_test_data_dict(json_path, test_rate=0.2, use_new_whale=True):
+def get_train_test_data_dict(json_path, test_rate=0.2, use_new_whale=True, duplicate_low_cls=True):
     all_data_d = json.loads(open(json_path).read())
     if use_new_whale is False:
         all_data_d.pop('new_whale')
-    return split_train_test_dict(all_data_d, test_rate)
+    return split_train_test_dict(all_data_d, test_rate, duplicate_low_cls)
 
 
 def get_if_new_whale_dict(all_data_d):
