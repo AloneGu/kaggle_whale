@@ -1,0 +1,1 @@
+python3 gen_submission.py --pred_path ../data/save_feats/mob_299_val_2.391_299_feat.pkl --binary_path ../data/save_feats/detect_if_new_whale_224_feat.pkl --output_path ../submissions/test_v3_binary.csv
