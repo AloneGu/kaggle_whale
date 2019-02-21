@@ -1,0 +1,1 @@
+python3 gen_model_pred.py --model_path=../data/checkpoints/mob_299_val_2.391.h5 --cls_num=5004

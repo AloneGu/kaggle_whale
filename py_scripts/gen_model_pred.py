@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     opts = args.parse_args()
     print(opts)
-    model = load_model(opts.model_path)
+    model = load_model(opts.model_path, compile=False)
     image_shape = model.input_shape[1:3]  # None,224,224,3
     print('image shape', image_shape)
 
@@ -48,10 +48,10 @@ if __name__ == '__main__':
         res['label_list'] = ['new_whale', 'not_new_whale']
     elif opts.cls_num == 5005:
         for i in range(5005):
-            res['label_list'].append(ID_TO_LABEL[i])
+            res['label_list'].append(ID_TO_LABEL[str(i)])
     elif opts.cls_num == 5004:
         for i in range(5004):
-            res['label_list'].append(ID_TO_LABEL[i + 1])
+            res['label_list'].append(ID_TO_LABEL[str(i + 1)])
     else:
         print('wrong conf')
         sys.exit()
