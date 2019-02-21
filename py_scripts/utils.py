@@ -9,9 +9,20 @@
 import os
 import numpy as np
 import json
+import pandas as pd
 from keras import backend
 from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array, array_to_img
 from scipy.misc import imresize
+
+CURR_DIR = os.path.abspath(os.path.join(__file__, '..'))
+BBOX_PATH = os.path.join(CURR_DIR, '../data/bounding_boxes.csv')
+BBOX_DF = pd.read_csv(BBOX_PATH).set_index('Image')
+
+
+def get_bbox(fp):
+    bbox = BBOX_DF.loc[fp]
+    x0, y0, x1, y1 = bbox['x0'], bbox['y0'], bbox['x1'], bbox['y1']
+    return x0, y0, x1, y1
 
 
 def preprocess_func(x):
@@ -23,11 +34,11 @@ class DictImageDataGenerator(ImageDataGenerator):
                        target_size=(256, 256), color_mode='rgb',
                        classes=None, class_mode='categorical',
                        batch_size=32, shuffle=True, seed=None,
-                       interpolation='nearest'):
+                       interpolation='nearest', use_bbox=True):
         # cls_fp_dict {'label1':[fp1,fp2], 'label2':[fp3,fp4]}
         return FlDictIterator(
             cls_fp_dict, self, target_size=target_size, color_mode=color_mode, class_mode=class_mode,
-            batch_size=batch_size, interpolation=interpolation, shuffle=shuffle, seed=seed
+            batch_size=batch_size, interpolation=interpolation, shuffle=shuffle, seed=seed, use_bbox=True
         )
 
 
@@ -40,7 +51,7 @@ class FlDictIterator(Iterator):
                  save_to_dir=None, save_prefix='', save_format='png',
                  follow_links=False,
                  subset=None,
-                 interpolation='nearest'):
+                 interpolation='nearest', use_bbox=True):
         if data_format is None:
             data_format = backend.image_data_format()
         self.cls_fp_dict = cls_fp_dict
@@ -103,6 +114,11 @@ class FlDictIterator(Iterator):
                 self.classes.append(cls_idx)
         self.classes = np.array(self.classes)
 
+        # flag for bbox
+        self.use_bbox = use_bbox
+        if self.use_bbox:
+            print('Using bbox for image')
+
         super(FlDictIterator, self).__init__(self.samples,
                                              batch_size,
                                              shuffle,
@@ -118,6 +134,12 @@ class FlDictIterator(Iterator):
             img = load_img(fname,
                            color_mode=self.color_mode
                            )  # resize later
+            if self.use_bbox is True:
+                base_fn = os.path.basename(fname)
+                x0, y0, x1, y1 = get_bbox(base_fn)
+                if not (x0 >= x1 or y0 >= y1):
+                    tmp_box = (x0, y0, x1, y1)
+                    img.crop(tmp_box)
             x = img_to_array(img, data_format=self.data_format)
             # Pillow images should be closed after `load_img`,
             # but not PIL images.

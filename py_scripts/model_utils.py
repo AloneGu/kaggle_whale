@@ -18,7 +18,11 @@ def get_mobilenet_model(img_size=224, label_cnt=5005, dense_dim=1024):
     :param img_size: input img size
     :return: model structure
     """
-    input_tensor = Input(shape=(img_size, img_size, 3))
+    if isinstance(img_size, list):  # 224,100
+        h, w = img_size
+        input_tensor = Input(shape=(h, w, 3))
+    else:
+        input_tensor = Input(shape=(img_size, img_size, 3))
     base_model = MobileNet(input_tensor=input_tensor, include_top=False, weights='imagenet')
     x = keras.layers.GlobalAveragePooling2D()(base_model.output)
     if dense_dim is not None:
@@ -31,7 +35,7 @@ def get_mobilenet_model(img_size=224, label_cnt=5005, dense_dim=1024):
 def get_callbacks(model_save_path, model=None):
     if os.path.exists(model_save_path):
         if model is not None:
-            model.load_weights(model_save_path)
+            model.load_weights(model_save_path, skip_mismatch=True, by_name=True)
             print('load pre weights')
     model_dir = os.path.dirname(model_save_path)
     if not os.path.exists(model_dir):
