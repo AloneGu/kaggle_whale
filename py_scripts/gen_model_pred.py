@@ -14,18 +14,30 @@ import json
 import pickle
 import glob
 import numpy as np
-from utils import preprocess_func
+from utils import preprocess_func, get_bbox
 from keras.preprocessing.image import load_img, img_to_array
 
 ID_TO_LABEL = json.loads(open('../data/id_to_label.json').read())
 TEST_FILE_LIST = glob.glob('../data/test/*')
 
 
+# pred with box and flip lr
 def predict_one_img(model, img_path, img_shape):
-    img = load_img(img_path, target_size=img_shape)
+    h, w = img_shape
+    img = load_img(img_path)
+    # crop
+    base_fn = os.path.basename(img_path)
+    x0, y0, x1, y1 = get_bbox(base_fn)
+    if not (x0 >= x1 or y0 >= y1):
+        tmp_box = (x0, y0, x1, y1)
+        img.crop(tmp_box)
+    # pil use w,h
+    img = img.resize((w, h))  # default nearest
     img = img_to_array(img)
     img = preprocess_func(img)
-    res = model.predict(np.array([img]))[0]
+    flip_img = np.fliplr(img)
+    res = model.predict(np.array([img, flip_img]))
+    res = np.mean(res, axis=0)
     return res
 
 
