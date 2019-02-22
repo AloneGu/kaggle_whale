@@ -23,6 +23,7 @@ ALL_DATA_JSON = '../data/train_data.json'
 BATCH_SIZE = 12
 print('load done')
 IMAGE_SHAPE = (299, 299)
+POS_RATIO = 0.4
 
 # In[3]:
 
@@ -51,11 +52,11 @@ train_ds = DictImageDataGenerator(rotation_range=20,
                                   horizontal_flip=True,
                                   preprocessing_function=preprocess_func)
 train_gen = train_ds.flow_from_dict_for_simaese(train_d, target_size=IMAGE_SHAPE, batch_size=BATCH_SIZE,
-                                                pos_ratio=0.3)
+                                                pos_ratio=POS_RATIO)
 
 val_ds = DictImageDataGenerator(preprocessing_function=preprocess_func)
 val_gen = val_ds.flow_from_dict_for_simaese(val_d, target_size=IMAGE_SHAPE, batch_size=BATCH_SIZE,
-                                            pos_ratio=0.3)
+                                            pos_ratio=POS_RATIO)
 
 val_steps = val_gen.samples // BATCH_SIZE
 print(val_steps)
@@ -71,7 +72,7 @@ for [x1, x2], y in val_gen:
 # In[ ]:
 
 
-all_model, feat_model, compare_model = create_simaese_model(img_shape=IMAGE_SHAPE, mob_alpha=1.0)
+all_model, feat_model, compare_model = create_simaese_model(img_shape=IMAGE_SHAPE, mid_feat_dim=64, mob_alpha=0.75)
 
 print(all_model.input_shape, all_model.output_shape)
 all_model.summary()
@@ -95,7 +96,7 @@ all_model.fit_generator(
     train_gen,
     steps_per_epoch=1000,
     epochs=100,
-    verbose=2,
+    verbose=1,
     callbacks=cb_list,
     validation_data=val_gen,
     validation_steps=val_steps

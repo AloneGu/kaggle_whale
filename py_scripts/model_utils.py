@@ -66,7 +66,7 @@ def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_
         # imagenet weights does not help
         feat_model = MobileNet(input_tensor=img_input, include_top=False, weights=None,
                                pooling='avg', alpha=mob_alpha)
-        mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output')(feat_model.output)
+        mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='softmax')(feat_model.output)
     else:
         raise ValueError('head model name')
 
