@@ -51,7 +51,7 @@ def get_mobilenet_model(img_size=224, label_cnt=5005, dense_dim=1024):
     return model
 
 
-def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_model_name='mobilenet'):
+def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_model_name='mobilenet', mob_alpha=1.0):
     """
 
     :param img_shape: h, w
@@ -63,7 +63,9 @@ def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_
     # feat model
     img_input = Input(shape=(img_shape[0], img_shape[1], 3), name='img_feat_input')
     if head_model_name == 'mobilenet':
-        feat_model = MobileNet(input_tensor=img_input, include_top=False, weights='imagenet', pooling='avg')
+        # imagenet weights does not help
+        feat_model = MobileNet(input_tensor=img_input, include_top=False, weights=None,
+                               pooling='avg', alpha=mob_alpha)
         mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output')(feat_model.output)
     else:
         raise ValueError('head model name')

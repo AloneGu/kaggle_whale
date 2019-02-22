@@ -14,6 +14,7 @@ import pandas as pd
 from keras import backend
 from keras.preprocessing.image import ImageDataGenerator, Iterator, load_img, img_to_array, array_to_img
 from scipy.misc import imresize
+from sklearn.utils import shuffle
 
 CURR_DIR = os.path.abspath(os.path.join(__file__, '..'))
 BBOX_PATH = os.path.join(CURR_DIR, '../data/bounding_boxes.csv')
@@ -260,7 +261,7 @@ class FlSimaeseDictIterator(Iterator):
 
         # Second, build an index of the images
         # in the different class subfolders.
-        self.all_labels = list(self.cls_fp_dict.keys())
+        self.all_labels = [k for k in self.cls_fp_dict if len(self.cls_fp_dict[k]) > 0]
         self.filename_to_cls_label = {}
         self.filenames = []
         self.classes = []
@@ -321,7 +322,7 @@ class FlSimaeseDictIterator(Iterator):
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
             curr_label = self.filename_to_cls_label[fname]
-            if j <= pos_cnt:  # find same cls
+            if i < pos_cnt:  # find same cls
                 this_label_fps = self.cls_fp_dict[curr_label]
                 fname = random.choice(this_label_fps)
             else:  # random find another cls
@@ -352,6 +353,8 @@ class FlSimaeseDictIterator(Iterator):
         # build batch of labels
         batch_y = np.zeros(shape=(batch_size, 1), dtype=backend.floatx())
         batch_y[:pos_cnt, :] = 1.0
+
+        batch_x1, batch_x2, batch_y = shuffle(batch_x1, batch_x2, batch_y)
 
         return [batch_x1, batch_x2], batch_y
 

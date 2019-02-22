@@ -3,3 +3,4 @@ data/
 .idea/
 notebooks/.ipynb_checkpoints/
 submissions/
+*/nohup.out
