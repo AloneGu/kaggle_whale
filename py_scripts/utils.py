@@ -7,6 +7,7 @@
 @time: 2/13/19 20:56
 """
 import os
+import time
 import random
 import numpy as np
 import json
@@ -206,6 +207,7 @@ class FlSimaeseDictIterator(Iterator):
                  subset=None,
                  interpolation='nearest',
                  use_bbox=True,
+                 preload_img=False, # FOR larger memory
                  pos_ratio=0.5  # positive pairs in each batch
                  ):
         if data_format is None:
@@ -246,6 +248,7 @@ class FlSimaeseDictIterator(Iterator):
         self.save_format = save_format
         self.interpolation = interpolation
         self.pos_ratio = pos_ratio
+        self.preload_img = preload_img
 
         # First, count the number of samples and classes.
         if not classes:  # classes names
@@ -265,6 +268,8 @@ class FlSimaeseDictIterator(Iterator):
         self.filename_to_cls_label = {}
         self.filenames = []
         self.classes = []
+        self.cache_imgs = []
+        t0 = time.time()
         for k in self.cls_fp_dict:  # k is string label like new_whale
             fp_list = self.cls_fp_dict[k]
             cls_idx = self.class_indices[k]  # cls_idx is integer like 123
@@ -272,6 +277,11 @@ class FlSimaeseDictIterator(Iterator):
                 self.filenames.append(tmp_fp)
                 self.classes.append(cls_idx)
                 self.filename_to_cls_label[tmp_fp] = k  # save label to find same or diff images
+                if self.preload_img:
+                    tmp_img = load_img(tmp_fp, color_mode=self.color_mode)
+                    tmp_img.load() # too many open error https://github.com/python-pillow/Pillow/issues/1144
+                    self.cache_imgs.append(tmp_img)
+        print('caching image time', time.time() - t0)
         self.classes = np.array(self.classes)
 
         # flag for bbox
@@ -296,10 +306,14 @@ class FlSimaeseDictIterator(Iterator):
 
         # build batch of image data
         for i, j in enumerate(index_array):
+            # j is the real index, simple read images
             fname = self.filenames[j]
-            img = load_img(fname,
-                           color_mode=self.color_mode
-                           )  # resize later
+            if self.preload_img:
+                img = self.cache_imgs[j].copy()
+            else:
+                img = load_img(fname,
+                               color_mode=self.color_mode
+                               )  # resize later
             if self.use_bbox is True:
                 base_fn = os.path.basename(fname)
                 x0, y0, x1, y1 = get_bbox(base_fn)
@@ -320,6 +334,7 @@ class FlSimaeseDictIterator(Iterator):
         # build next batch
         pos_cnt = int(batch_size * self.pos_ratio)
         for i, j in enumerate(index_array):
+            # choose images
             fname = self.filenames[j]
             curr_label = self.filename_to_cls_label[fname]
             if i < pos_cnt:  # find same cls
@@ -330,9 +345,14 @@ class FlSimaeseDictIterator(Iterator):
                 rnd_label = random.choice(other_labels)
                 other_label_fps = self.cls_fp_dict[rnd_label]
                 fname = random.choice(other_label_fps)
-            img = load_img(fname,
-                           color_mode=self.color_mode
-                           )  # resize later
+
+            # read images
+            if self.preload_img:
+                img = self.cache_imgs[j].copy()
+            else:
+                img = load_img(fname,
+                               color_mode=self.color_mode
+                               )  # resize later
             if self.use_bbox is True:
                 base_fn = os.path.basename(fname)
                 x0, y0, x1, y1 = get_bbox(base_fn)

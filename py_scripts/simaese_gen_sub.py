@@ -61,8 +61,8 @@ def get_sim_score(comp_model, train_feats, test_feats, label_cvt):
             tmp_pred[label_idx] = max(tmp_pred[label_idx], tmp_score[0])  # keep highest similarity
         sim_res[k] = tmp_pred
         p_cnt += 1
-        if p_cnt%1000 == 10:
-            print('done', k, tmp_pred[:3])
+        if p_cnt % 1000 == 5:
+            print(p_cnt, 'done', k, tmp_pred[:3])
     return sim_res
 
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     # get test images feat
     test_feats = get_test_img_feat(feat_model, img_shape)
-    print('test feats done')
+    print('test feats done', len(test_feats))
 
     # build id label info
     label_to_id = json.loads(open('../data/label_to_id.json').read())
@@ -104,10 +104,11 @@ if __name__ == '__main__':
         idx = int(idx)
         label_cvt_list[idx] = l
 
-    # get sim score for each label, key:5004 score
+    # get sim score for each label, key:5005 score
     fin = open(opts.train_feat, 'rb')
     train_feats = pickle.load(fin)
     fin.close()
+    print('train feat cnt', len(train_feats))
     sim_res = get_sim_score(comp_model, train_feats, test_feats, label_to_id)
     print('sim res done')
 
