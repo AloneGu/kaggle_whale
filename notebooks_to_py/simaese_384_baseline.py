@@ -47,8 +47,8 @@ print('train cls cnt', cnt)
 
 
 train_ds = DictImageDataGenerator(rotation_range=20,
-                                  width_shift_range=0.2,
-                                  height_shift_range=0.2,
+                                  width_shift_range=0.1,
+                                  height_shift_range=0.1,
                                   horizontal_flip=True,
                                   preprocessing_function=preprocess_func)
 train_gen = train_ds.flow_from_dict_for_simaese(train_d, target_size=IMAGE_SHAPE, batch_size=BATCH_SIZE,

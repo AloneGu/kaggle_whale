@@ -25,6 +25,8 @@ import numpy as np
 import pandas as pd
 from gen_model_pred import predict_one_img
 
+SPEED_UP_FLAG = True
+MAX_SAMPLE = 10
 
 def get_test_img_feat(img_model, img_shape):
     test_fl = list(glob.glob('../data/test/*'))
@@ -109,6 +111,17 @@ if __name__ == '__main__':
     train_feats = pickle.load(fin)
     fin.close()
     print('train feat cnt', len(train_feats))
+    if SPEED_UP_FLAG:
+        tmp_train_feats = []
+        train_cnt_d = {}
+        for label,fp,tmp_f in train_feats:
+            if label not in train_cnt_d:
+                train_cnt_d[label] = 0
+            train_cnt_d[label] += 1
+            if train_cnt_d[label] < MAX_SAMPLE:
+                tmp_train_feats.append([label,fp,tmp_f])
+        train_feats = tmp_train_feats
+        print('filtered train feat cnt', len(train_feats))
     sim_res = get_sim_score(comp_model, train_feats, test_feats, label_to_id)
     print('sim res done')
 
