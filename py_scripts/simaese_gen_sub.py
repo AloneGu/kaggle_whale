@@ -36,7 +36,7 @@ def get_test_img_feat(img_model, img_shape):
         res.append([base_fn, tmp_feat])
         p_cnt += 1
         if p_cnt % 1000 == 5:
-            print(p_cnt, f, pred[:3])
+            print(p_cnt, f, tmp_feat[:3])
     return res
 
 
