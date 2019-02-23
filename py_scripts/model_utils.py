@@ -27,7 +27,7 @@ def get_callbacks(model_save_path, model=None):
     m_check = keras.callbacks.ModelCheckpoint(
         model_save_path, monitor='val_loss', verbose=1, save_best_only=True)
     m_check2 = keras.callbacks.ModelCheckpoint(
-        model_save_path, monitor='loss', verbose=1, save_best_only=True)
+        model_save_path.replace('.h5','best_train_loss.h5'), monitor='loss', verbose=1, save_best_only=True)
     return [m_reduce, m_check, m_check2]
 
 
