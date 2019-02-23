@@ -47,7 +47,6 @@ if __name__ == '__main__':
     args.add_argument('--cls_num', default=1, type=int)
     args.add_argument('--output_path', default=None)
 
-
     opts = args.parse_args()
     print(opts)
     model = load_model(opts.model_path, compile=False)

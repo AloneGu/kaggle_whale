@@ -207,7 +207,7 @@ class FlSimaeseDictIterator(Iterator):
                  subset=None,
                  interpolation='nearest',
                  use_bbox=True,
-                 preload_img=False, # FOR larger memory
+                 preload_img=False,  # FOR larger memory
                  pos_ratio=0.5  # positive pairs in each batch
                  ):
         if data_format is None:
@@ -279,7 +279,7 @@ class FlSimaeseDictIterator(Iterator):
                 self.filename_to_cls_label[tmp_fp] = k  # save label to find same or diff images
                 if self.preload_img:
                     tmp_img = load_img(tmp_fp, color_mode=self.color_mode)
-                    tmp_img.load() # too many open error https://github.com/python-pillow/Pillow/issues/1144
+                    tmp_img.load()  # too many open error https://github.com/python-pillow/Pillow/issues/1144
                     self.cache_imgs.append(tmp_img)
         print('caching image time', time.time() - t0)
         self.classes = np.array(self.classes)
