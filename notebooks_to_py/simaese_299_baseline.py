@@ -82,7 +82,7 @@ all_model.summary()
 
 # get generator and train
 cb_list = get_callbacks('../data/checkpoints/mob_299_sim.h5', all_model)
-adam_opt = keras.optimizers.Adam(lr=0.001)
+adam_opt = keras.optimizers.Adam(lr=0.0001)
 all_model.compile(optimizer=adam_opt,
                   loss='binary_crossentropy',
                   metrics=['acc'])
@@ -96,7 +96,7 @@ all_model.fit_generator(
     train_gen,
     steps_per_epoch=1000,
     epochs=100,
-    verbose=1,
+    verbose=2,
     callbacks=cb_list,
     validation_data=val_gen,
     validation_steps=val_steps
