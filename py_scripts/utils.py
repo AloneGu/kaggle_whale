@@ -333,6 +333,8 @@ class FlSimaeseDictIterator(Iterator):
 
         # build next batch
         pos_cnt = int(batch_size * self.pos_ratio)
+        pos_cnt -= random.randint(0, 3)
+        pos_cnt = max(pos_cnt, 1)  # larger than 1
         for i, j in enumerate(index_array):
             # choose images
             fname = self.filenames[j]

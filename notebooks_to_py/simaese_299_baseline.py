@@ -23,7 +23,7 @@ ALL_DATA_JSON = '../data/train_data.json'
 BATCH_SIZE = 12
 print('load done')
 IMAGE_SHAPE = (299, 299)
-POS_RATIO = 0.4
+POS_RATIO = 0.5
 
 # In[3]:
 
@@ -46,7 +46,7 @@ print('train cls cnt', cnt)
 # In[4]:
 
 
-train_ds = DictImageDataGenerator(rotation_range=20,
+train_ds = DictImageDataGenerator(rotation_range=10,
                                   width_shift_range=0.1,
                                   height_shift_range=0.1,
                                   horizontal_flip=True,
@@ -72,7 +72,7 @@ for [x1, x2], y in val_gen:
 # In[ ]:
 
 
-all_model, feat_model, compare_model = create_simaese_model(img_shape=IMAGE_SHAPE, mid_feat_dim=64, mob_alpha=0.75)
+all_model, feat_model, compare_model = create_simaese_model(img_shape=IMAGE_SHAPE, mid_feat_dim=256, mob_alpha=0.75)
 
 print(all_model.input_shape, all_model.output_shape)
 all_model.summary()
@@ -96,7 +96,7 @@ all_model.fit_generator(
     train_gen,
     steps_per_epoch=1000,
     epochs=100,
-    verbose=2,
+    verbose=1,
     callbacks=cb_list,
     validation_data=val_gen,
     validation_steps=val_steps

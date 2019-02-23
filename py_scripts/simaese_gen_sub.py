@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 from gen_model_pred import predict_one_img
 
-SPEED_UP_FLAG = True
+SPEED_UP_FLAG = False
 MAX_SAMPLE = 10
 
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     args.add_argument('--model_path')
     args.add_argument('--train_feat')
     args.add_argument('--output_path', default=None)
-    args.add_argument('--thres', default=0.9, type=float)
+    args.add_argument('--thres', default=0.95, type=float)
 
     opts = args.parse_args()
     print(opts)
