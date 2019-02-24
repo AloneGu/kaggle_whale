@@ -27,6 +27,8 @@ from gen_model_pred import predict_one_img
 
 SPEED_UP_FLAG = False
 MAX_SAMPLE = 10
+FILTER_TOP3 = True
+FILTER_TOP3_LABELS = json.loads(open('../data/top3_filter.json').read())
 
 
 def get_test_img_feat(img_model, img_shape):
@@ -112,6 +114,8 @@ if __name__ == '__main__':
     train_feats = pickle.load(fin)
     fin.close()
     print('train feat cnt', len(train_feats))
+
+    # bad idea to keep topk samples
     if SPEED_UP_FLAG:
         tmp_train_feats = []
         train_cnt_d = {}
@@ -123,6 +127,17 @@ if __name__ == '__main__':
                 tmp_train_feats.append([label, fp, tmp_f])
         train_feats = tmp_train_feats
         print('filtered train feat cnt', len(train_feats))
+
+    # filter based on public top3 labels
+    if FILTER_TOP3:
+        tmp_train_feats = []
+        train_cnt_d = {}
+        for label, fp, tmp_f in train_feats:
+            if label in FILTER_TOP3_LABELS:  # only keep labels in top3 set
+                tmp_train_feats.append([label, fp, tmp_f])
+        train_feats = tmp_train_feats
+        print('filtered train feat cnt', len(train_feats))
+
     sim_res = get_sim_score(comp_model, train_feats, test_feats, label_to_id)
     print('sim res done')
 
