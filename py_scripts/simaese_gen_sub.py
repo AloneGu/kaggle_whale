@@ -29,10 +29,12 @@ SPEED_UP_FLAG = False
 MAX_SAMPLE = 10
 FILTER_TOP3 = True
 FILTER_TOP3_LABELS = json.loads(open('../data/top3_filter.json').read())
+USING_MEAN_SIM = True
 
 
 def get_test_img_feat(img_model, img_shape):
     test_fl = list(glob.glob('../data/test/*'))
+    test_fl = sorted(test_fl)
     res = []
     p_cnt = 0
     for f in test_fl:  # test
@@ -58,12 +60,24 @@ def get_sim_score(comp_model, train_feats, test_feats, label_cvt):
         scores = comp_model.predict([pred_train_feat, dup_test_feats])
         # print(scores.shape)
 
-        # keep highest score
         tmp_pred = [0 for i in range(5005)]
-        for i, tmp_score in enumerate(scores):
-            label = train_feats[i][0]
-            label_idx = label_cvt[label]
-            tmp_pred[label_idx] = max(tmp_pred[label_idx], tmp_score[0])  # keep highest similarity
+        # keep highest score
+        if USING_MEAN_SIM is False:
+            for i, tmp_score in enumerate(scores):
+                label = train_feats[i][0]
+                label_idx = label_cvt[label]
+                tmp_pred[label_idx] = max(tmp_pred[label_idx], tmp_score[0])  # keep highest similarity
+        else:
+            # using mean score
+            tmp_score_list = [[] for i in range(5005)]
+            for i, tmp_score in enumerate(scores):
+                label = train_feats[i][0]
+                label_idx = label_cvt[label]
+                tmp_score_list[label_idx].append(tmp_score[0])
+            for i, score_l in enumerate(tmp_score_list):
+                if len(score_l) > 0:
+                    tmp_pred[i] = np.mean(score_l)  # using mean sim score
+
         sim_res[k] = tmp_pred
         p_cnt += 1
         if p_cnt % 1000 == 5:
@@ -77,6 +91,7 @@ if __name__ == '__main__':
     args.add_argument('--train_feat')
     args.add_argument('--output_path', default=None)
     args.add_argument('--thres', default=0.95, type=float)
+    args.add_argument('--test_cnt', default=1000000, type=int)
 
     opts = args.parse_args()
     print(opts)
@@ -100,6 +115,8 @@ if __name__ == '__main__':
     # get test images feat
     test_feats = get_test_img_feat(feat_model, img_shape)
     print('test feats done', len(test_feats))
+    if opts.test_cnt is not None:
+        test_feats = test_feats[:opts.test_cnt]
 
     # build id label info
     label_to_id = json.loads(open('../data/label_to_id.json').read())
