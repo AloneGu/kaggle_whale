@@ -12,6 +12,7 @@ from keras import backend as K
 from keras.layers import Lambda, Concatenate, Dense, Flatten
 from keras.layers import Input, Conv2D, Reshape
 from keras.applications import MobileNet, ResNet50, InceptionResNetV2, Xception
+from fgvc_models import HBP_mobilenet
 
 
 def get_callbacks(model_save_path, model=None):
@@ -66,6 +67,10 @@ def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_
         # imagenet weights does not help
         feat_model = MobileNet(input_tensor=img_input, include_top=False, weights=None,
                                pooling='avg', alpha=mob_alpha)
+        mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
+    elif head_model_name == 'mobilenet_hbp':
+        feat_model = HBP_mobilenet(img_shape, feat_dim=18, project_num=2048, alpha=mob_alpha)
+        img_input = feat_model.input  # updated input tensor
         mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
     else:
         raise ValueError('head model name')
