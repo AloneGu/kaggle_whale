@@ -101,3 +101,21 @@ all_model.fit_generator(
     validation_data=val_gen,
     validation_steps=val_steps
 )
+
+# train about 75 epochs
+
+# Epoch 4/100
+#  - 1705s - loss: 0.2088 - acc: 0.9123 - val_loss: 0.1673 - val_acc: 0.9335
+#
+# Epoch 00004: val_loss improved from 0.17196 to 0.16729, saving model to ../data/checkpoints/mob_299_sim.h5
+# Epoch 00015: ReduceLROnPlateau reducing learning rate to 2.499999936844688e-05.
+#
+# Epoch 00015: val_loss did not improve from 0.16729
+#
+# Epoch 00015: loss did not improve from 0.18985
+# Epoch 16/100
+#  - 1701s - loss: 0.1883 - acc: 0.9208 - val_loss: 0.1683 - val_acc: 0.9243
+#
+# Epoch 00016: val_loss did not improve from 0.16729
+#
+# Epoch 00016: loss improved from 0.18985 to 0.18843, saving model to ../data/checkpoints/mob_299_sim_best_train_loss.h5
