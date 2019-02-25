@@ -14,6 +14,7 @@ sys.path.append('../py_scripts')
 from model_utils import create_simaese_model
 import keras
 import os
+import json
 from model_utils import get_mobilenet_model, get_callbacks
 from utils import get_train_test_data_dict, DictImageDataGenerator, preprocess_func
 
@@ -24,7 +25,7 @@ BATCH_SIZE = 12
 print('load done')
 IMAGE_SHAPE = (299, 299)
 POS_RATIO = 0.5
-VAL_STEP = 100
+VAL_STEP = 50  # use small val step
 
 # In[3]:
 
@@ -52,15 +53,18 @@ train_ds = DictImageDataGenerator(rotation_range=10,
                                   height_shift_range=0.1,
                                   horizontal_flip=True,
                                   preprocessing_function=preprocess_func)
+# use all data in train,
+train_d = json.loads(open(ALL_DATA_JSON).read())
+train_d.pop('new_whale')
 train_gen = train_ds.flow_from_dict_for_simaese(train_d, target_size=IMAGE_SHAPE, batch_size=BATCH_SIZE,
                                                 pos_ratio=POS_RATIO)
-
-val_ds = DictImageDataGenerator(preprocessing_function=preprocess_func)
+# add some aug in val
+val_ds = DictImageDataGenerator(width_shift_range=0.05,
+                                height_shift_range=0.05,
+                                preprocessing_function=preprocess_func)
 val_gen = val_ds.flow_from_dict_for_simaese(val_d, target_size=IMAGE_SHAPE, batch_size=BATCH_SIZE,
                                             pos_ratio=POS_RATIO)
 
-val_steps = val_gen.samples // BATCH_SIZE
-print(val_steps)
 # test
 for [x1, x2], y in train_gen:
     print(x1.shape, x2.shape, y.shape)
@@ -84,7 +88,7 @@ all_model.summary()
 
 # get generator and train
 cb_list = get_callbacks('../data/checkpoints/mob_299_sim_hbp.h5', all_model)
-adam_opt = keras.optimizers.Adam(lr=0.00005)
+adam_opt = keras.optimizers.Adam(lr=0.0001)
 all_model.compile(optimizer=adam_opt,
                   loss='binary_crossentropy',
                   metrics=['acc'])
@@ -98,7 +102,7 @@ all_model.fit_generator(
     train_gen,
     steps_per_epoch=1000,
     epochs=100,
-    verbose=1,
+    verbose=2,
     callbacks=cb_list,
     validation_data=val_gen,
     validation_steps=VAL_STEP
