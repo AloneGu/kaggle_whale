@@ -29,7 +29,7 @@ SPEED_UP_FLAG = False
 MAX_SAMPLE = 10
 FILTER_TOP3 = True
 FILTER_TOP3_LABELS = json.loads(open('../data/top3_filter.json').read())
-USING_MEAN_SIM = True
+USING_MEAN_SIM = False
 
 
 def get_test_img_feat(img_model, img_shape):
@@ -80,8 +80,8 @@ def get_sim_score(comp_model, train_feats, test_feats, label_cvt):
 
         sim_res[k] = tmp_pred
         p_cnt += 1
-        if p_cnt % 1000 == 5:
-            print(p_cnt, 'done', k, tmp_pred[:3])
+        if p_cnt % 200 == 5:
+            print(p_cnt, 'done', k, tmp_pred[:3], datetime.datetime.now())
     return sim_res
 
 
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     args.add_argument('--model_path')
     args.add_argument('--train_feat')
     args.add_argument('--output_path', default=None)
-    args.add_argument('--thres', default=0.95, type=float)
+    args.add_argument('--thres', default=0.99, type=float)
     args.add_argument('--test_cnt', default=1000000, type=int)
 
     opts = args.parse_args()

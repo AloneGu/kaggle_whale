@@ -51,6 +51,25 @@ def get_mobilenet_model(img_size=224, label_cnt=5005, dense_dim=1024):
     model = keras.Model(input_tensor, x)
     return model
 
+def get_xception_model(img_size=224, label_cnt=5005, dense_dim=1024):
+    """
+
+    :param img_size: input img size
+    :return: model structure
+    """
+    if isinstance(img_size, list):  # 224,100
+        h, w = img_size
+        input_tensor = Input(shape=(h, w, 3))
+    else:
+        input_tensor = Input(shape=(img_size, img_size, 3))
+    base_model = Xception(input_tensor=input_tensor, include_top=False, weights=None)
+    x = keras.layers.GlobalMaxPooling2D()(base_model.output) # diff use max pool
+    if dense_dim is not None:
+        x = keras.layers.Dense(dense_dim, activation='relu')(x)
+    x = keras.layers.Dense(label_cnt, activation='softmax')(x)
+    model = keras.Model(input_tensor, x)
+    return model
+
 
 def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_model_name='mobilenet', mob_alpha=1.0):
     """
