@@ -217,7 +217,7 @@ class FlDictIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
 
-class FlSimaeseDictIterator(FlDictIterator):
+class FlSimaeseDictIterator(Iterator):
     def __init__(self, cls_fp_dict, image_data_generator,
                  target_size=(256, 256), color_mode='rgb',
                  classes=None, class_mode='categorical',
@@ -315,6 +315,28 @@ class FlSimaeseDictIterator(FlDictIterator):
                                                     shuffle,
                                                     seed)
 
+    def _get_pil_img(self, fname):
+        # read img
+        img = load_img(fname,
+                       color_mode=self.color_mode
+                       )  # resize later
+        # crop
+        if self.use_bbox is True:
+            base_fn = os.path.basename(fname)
+            box = get_bbox(base_fn)
+            x0, y0, x1, y1 = expand_bb(img, box, CROP_MARGIN)
+            if not (x0 >= x1 or y0 >= y1):
+                tmp_box = (x0, y0, x1, y1)
+                img.crop(tmp_box)
+
+        # to array
+        x = img_to_array(img, data_format=self.data_format)
+        # Pillow images should be closed after `load_img`,
+        # but not PIL images.
+        if hasattr(img, 'close'):
+            img.close()
+        return x
+
     def _get_batches_of_transformed_samples(self, index_array):
         # init x
         batch_size = len(index_array)
@@ -368,6 +390,18 @@ class FlSimaeseDictIterator(FlDictIterator):
         batch_x1, batch_x2, batch_y = shuffle(batch_x1, batch_x2, batch_y)
 
         return [batch_x1, batch_x2], batch_y
+
+    def next(self):
+        """For python 2.x.
+        # Returns
+            The next batch.
+        """
+        with self.lock:
+            index_array = next(self.index_generator)
+        # The transformation of images is not under thread lock
+        # so it can be done in parallel
+        return self._get_batches_of_transformed_samples(index_array)
+
 
 
 def split_train_test_dict(all_data_d, test_rate=0.2, duplicate_low_cls=True):

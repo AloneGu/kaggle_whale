@@ -72,7 +72,7 @@ def get_xception_model(img_size=224, label_cnt=5005, dense_dim=1024):
     return model
 
 
-def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_model_name='mobilenet', mob_alpha=1.0):
+def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_model_name='mobilenet', mob_alpha=1.0,l2_flag=False):
     """
 
     :param img_shape: h, w
@@ -87,9 +87,19 @@ def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_
         # imagenet weights does not help
         feat_model = MobileNet(input_tensor=img_input, include_top=False, weights=None,
                                pooling='avg', alpha=mob_alpha)
-        mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
+        if l2_flag is False:
+            mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
+        else:
+            tmp_feat = keras.layers.Dense(mid_feat_dim, activation='sigmoid')(feat_model.output)
+            mid_feat = keras.backend.l2_normalize(tmp_feat)
+            mid_feat.name = 'img_feat_output'
     elif head_model_name == 'mobilenet_hbp':
-        feat_model = HBP_mobilenet(img_shape, feat_dim=18, project_num=2048, alpha=mob_alpha)
+        f_dim = 28 # 448 image
+        if img_shape[0] == 299:
+            f_dim = 18
+        if img_shape[0] == 384:
+            f_dim = 24
+        feat_model = HBP_mobilenet(img_shape, feat_dim=f_dim, project_num=2048, alpha=mob_alpha)
         img_input = feat_model.input  # updated input tensor
         mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
     else:
