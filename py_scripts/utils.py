@@ -403,7 +403,6 @@ class FlSimaeseDictIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
 
-
 def split_train_test_dict(all_data_d, test_rate=0.2, duplicate_low_cls=True):
     train_d = {}
     val_d = {}
