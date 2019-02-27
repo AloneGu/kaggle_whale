@@ -51,6 +51,7 @@ def get_mobilenet_model(img_size=224, label_cnt=5005, dense_dim=1024):
     model = keras.Model(input_tensor, x)
     return model
 
+
 def get_xception_model(img_size=224, label_cnt=5005, dense_dim=1024):
     """
 
@@ -63,7 +64,7 @@ def get_xception_model(img_size=224, label_cnt=5005, dense_dim=1024):
     else:
         input_tensor = Input(shape=(img_size, img_size, 3))
     base_model = Xception(input_tensor=input_tensor, include_top=False, weights=None)
-    x = keras.layers.GlobalMaxPooling2D()(base_model.output) # diff use max pool
+    x = keras.layers.GlobalMaxPooling2D()(base_model.output)  # diff use max pool
     if dense_dim is not None:
         x = keras.layers.Dense(dense_dim, activation='relu')(x)
     x = keras.layers.Dense(label_cnt, activation='softmax')(x)

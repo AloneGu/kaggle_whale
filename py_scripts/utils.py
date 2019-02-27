@@ -207,7 +207,6 @@ class FlSimaeseDictIterator(Iterator):
                  subset=None,
                  interpolation='nearest',
                  use_bbox=True,
-                 preload_img=False,  # FOR larger memory
                  pos_ratio=0.5  # positive pairs in each batch
                  ):
         if data_format is None:
@@ -248,7 +247,6 @@ class FlSimaeseDictIterator(Iterator):
         self.save_format = save_format
         self.interpolation = interpolation
         self.pos_ratio = pos_ratio
-        self.preload_img = preload_img
 
         # First, count the number of samples and classes.
         if not classes:  # classes names
@@ -268,7 +266,7 @@ class FlSimaeseDictIterator(Iterator):
         self.filename_to_cls_label = {}
         self.filenames = []
         self.classes = []
-        self.cache_imgs = []
+
         t0 = time.time()
         for k in self.cls_fp_dict:  # k is string label like new_whale
             fp_list = self.cls_fp_dict[k]
@@ -277,11 +275,8 @@ class FlSimaeseDictIterator(Iterator):
                 self.filenames.append(tmp_fp)
                 self.classes.append(cls_idx)
                 self.filename_to_cls_label[tmp_fp] = k  # save label to find same or diff images
-                if self.preload_img:
-                    tmp_img = load_img(tmp_fp, color_mode=self.color_mode)
-                    tmp_img.load()  # too many open error https://github.com/python-pillow/Pillow/issues/1144
-                    self.cache_imgs.append(tmp_img)
-        print('caching image time', time.time() - t0)
+
+        print('prepare image time', time.time() - t0)
         self.classes = np.array(self.classes)
 
         # flag for bbox
@@ -289,10 +284,35 @@ class FlSimaeseDictIterator(Iterator):
         if self.use_bbox:
             print('Using bbox for image')
 
+        # by default , cache some crop pil image in memeory
+        self.cache_cnt = 0
+
         super(FlSimaeseDictIterator, self).__init__(self.samples,
                                                     batch_size,
                                                     shuffle,
                                                     seed)
+
+    def _get_pil_img(self, fname):
+        # read img
+        img = load_img(fname,
+                       color_mode=self.color_mode
+                       )  # resize later
+        # crop
+        if self.use_bbox is True:
+            base_fn = os.path.basename(fname)
+            x0, y0, x1, y1 = get_bbox(base_fn)
+            if not (x0 >= x1 or y0 >= y1):
+                tmp_box = (x0, y0, x1, y1)
+                img.crop(tmp_box)
+                img.load()
+
+        # to array
+        x = img_to_array(img, data_format=self.data_format)
+        # Pillow images should be closed after `load_img`,
+        # but not PIL images.
+        if hasattr(img, 'close'):
+            img.close()
+        return x
 
     def _get_batches_of_transformed_samples(self, index_array):
         # init x
@@ -308,23 +328,7 @@ class FlSimaeseDictIterator(Iterator):
         for i, j in enumerate(index_array):
             # j is the real index, simple read images
             fname = self.filenames[j]
-            if self.preload_img:
-                img = self.cache_imgs[j].copy()
-            else:
-                img = load_img(fname,
-                               color_mode=self.color_mode
-                               )  # resize later
-            if self.use_bbox is True:
-                base_fn = os.path.basename(fname)
-                x0, y0, x1, y1 = get_bbox(base_fn)
-                if not (x0 >= x1 or y0 >= y1):
-                    tmp_box = (x0, y0, x1, y1)
-                    img.crop(tmp_box)
-            x = img_to_array(img, data_format=self.data_format)
-            # Pillow images should be closed after `load_img`,
-            # but not PIL images.
-            if hasattr(img, 'close'):
-                img.close()
+            x = self._get_pil_img(fname)
             params = self.image_data_generator.get_random_transform(x.shape)
             x = self.image_data_generator.apply_transform(x, params)
             x = imresize(x, size=self.target_size, interp=self.interpolation)  # resize after random transforms
@@ -349,23 +353,7 @@ class FlSimaeseDictIterator(Iterator):
                 fname = random.choice(other_label_fps)
 
             # read images
-            if self.preload_img:
-                img = self.cache_imgs[j].copy()
-            else:
-                img = load_img(fname,
-                               color_mode=self.color_mode
-                               )  # resize later
-            if self.use_bbox is True:
-                base_fn = os.path.basename(fname)
-                x0, y0, x1, y1 = get_bbox(base_fn)
-                if not (x0 >= x1 or y0 >= y1):
-                    tmp_box = (x0, y0, x1, y1)
-                    img.crop(tmp_box)
-            x = img_to_array(img, data_format=self.data_format)
-            # Pillow images should be closed after `load_img`,
-            # but not PIL images.
-            if hasattr(img, 'close'):
-                img.close()
+            x = self._get_pil_img(fname)
             params = self.image_data_generator.get_random_transform(x.shape)
             x = self.image_data_generator.apply_transform(x, params)
             x = imresize(x, size=self.target_size, interp=self.interpolation)  # resize after random transforms

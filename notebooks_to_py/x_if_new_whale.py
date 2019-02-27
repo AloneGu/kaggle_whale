@@ -4,6 +4,7 @@
 # In[1]:
 
 import sys
+
 sys.path.append('../py_scripts')
 
 import keras
@@ -25,8 +26,8 @@ if_whale_d = get_if_new_whale_dict(ALL_DATA_DICT)
 train_d, val_d = split_train_test_dict(if_whale_d, test_rate=0.075)
 # add val_d to train_d
 train_d = if_whale_d
-print(len(train_d['new_whale']),len(train_d['not_new_whale']))
-print(len(val_d['new_whale']),len(val_d['not_new_whale']))
+print(len(train_d['new_whale']), len(train_d['not_new_whale']))
+print(len(val_d['new_whale']), len(val_d['not_new_whale']))
 
 train_ds = DictImageDataGenerator(rotation_range=20,
                                   width_shift_range=0.1,
@@ -39,7 +40,7 @@ train_gen = train_ds.flow_from_dict(train_d, target_size=(
 val_ds = DictImageDataGenerator(preprocessing_function=preprocess_func)
 val_gen = val_ds.flow_from_dict(val_d, target_size=(
     IMG_SIZE, IMG_SIZE), batch_size=BATCH_SIZE)
-val_steps = val_gen.samples//BATCH_SIZE
+val_steps = val_gen.samples // BATCH_SIZE
 print(val_steps)
 # test
 for x, y in train_gen:
