@@ -71,6 +71,8 @@ def get_xception_model(img_size=224, label_cnt=5005, dense_dim=1024):
     model = keras.Model(input_tensor, x)
     return model
 
+def L2_norm(x, axis=-1):
+    return K.l2_normalize(x, axis=axis)
 
 def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_model_name='mobilenet', mob_alpha=1.0,l2_flag=False):
     """
@@ -101,7 +103,12 @@ def create_simaese_model(img_shape, mid_feat_dim=512, mid_compare_dim=128, head_
             f_dim = 24
         feat_model = HBP_mobilenet(img_shape, feat_dim=f_dim, project_num=2048, alpha=mob_alpha)
         img_input = feat_model.input  # updated input tensor
-        mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
+
+        if l2_flag is False:
+            mid_feat = keras.layers.Dense(mid_feat_dim, name='img_feat_output', activation='sigmoid')(feat_model.output)
+        else:
+            tmp_feat = keras.layers.Dense(mid_feat_dim, activation='sigmoid')(feat_model.output)
+            mid_feat = keras.layers.Lambda(L2_norm, name='img_feat_output')(tmp_feat)
     else:
         raise ValueError('head model name')
 
