@@ -12,8 +12,12 @@ https://www.kaggle.com/suicaokhoailang/generating-whale-bounding-boxes/comments
 
 https://www.kaggle.com/martinpiotte/bounding-box-model/output
 
-## py scripts
+good public ensemble kernels:
 
-utils
+https://www.kaggle.com/moradnejad/ensemble-lb-0-868
 
----
+https://www.kaggle.com/vanshjatana/let-s-blend-0-867
+
+## notes
+
+learn how to build and train simaese network
