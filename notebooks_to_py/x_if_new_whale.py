@@ -18,7 +18,7 @@ from utils import get_if_new_whale_dict, split_train_test_dict
 IMG_SIZE = 299
 LABEL_CNT = 2
 ALL_DATA_JSON = '../data/train_data.json'
-BATCH_SIZE = 4
+BATCH_SIZE = 12
 ALL_DATA_DICT = json.loads(open(ALL_DATA_JSON).read())
 print('load done')
 
@@ -52,7 +52,7 @@ mob_model = get_xception_model(IMG_SIZE, LABEL_CNT, dense_dim=None)
 # mob_model.summary()
 
 cb_list = get_callbacks('../data/checkpoints/detect_if_new_whale_bbox_xception.h5', mob_model)
-adam_opt = keras.optimizers.Adam(lr=0.001)
+adam_opt = keras.optimizers.Adam(lr=0.00001)
 mob_model.compile(optimizer=adam_opt,
                   loss='categorical_crossentropy', metrics=['acc'])
 print('compile done')
@@ -60,7 +60,7 @@ print('compile done')
 # train
 mob_model.fit_generator(
     train_gen,
-    steps_per_epoch=2000,
+    steps_per_epoch=1000,
     epochs=100,
     verbose=1,
     callbacks=cb_list,

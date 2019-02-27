@@ -107,3 +107,11 @@ all_model.fit_generator(
     validation_data=val_gen,
     validation_steps=VAL_STEP
 )
+
+# Epoch 00004: ReduceLROnPlateau reducing learning rate to 4.999999987376214e-07.
+#
+# Epoch 00004: val_loss improved from 0.11668 to 0.11243, saving model to ../data/checkpoints/mob_299_sim_hbp.h5
+#
+# Epoch 00004: loss did not improve from 0.15524
+# Epoch 5/100
+# 1000/1000 [==============================] - 2807s 3s/step - loss: 0.1591 - acc: 0.9376 - val_loss: 0.1202 - val_acc: 0.9528

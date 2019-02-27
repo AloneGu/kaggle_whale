@@ -20,6 +20,7 @@ from sklearn.utils import shuffle
 CURR_DIR = os.path.abspath(os.path.join(__file__, '..'))
 BBOX_PATH = os.path.join(CURR_DIR, '../data/bounding_boxes.csv')
 BBOX_DF = pd.read_csv(BBOX_PATH).set_index('Image')
+CROP_MARGIN = 0.1
 
 
 def get_bbox(fp):
@@ -30,6 +31,19 @@ def get_bbox(fp):
 
 def preprocess_func(x):
     return x / 127.5 - 1.0
+
+
+def expand_bb(image, box, crop_margin=CROP_MARGIN):
+    size_x, size_y = image.size
+    x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
+    dx = x1 - x0
+    dy = y1 - y0
+    x0 = max(0, x0 - dx * crop_margin)
+    x1 = min(size_x, x1 + dx * crop_margin + 1)
+    y0 = max(0, y0 - dy * crop_margin)
+    y1 = min(size_y, y1 + dy * crop_margin + 1)
+    x0, y0, x1, y1 = int(x0), int(y0), int(x1), int(y1)
+    return x0, y0, x1, y1
 
 
 class DictImageDataGenerator(ImageDataGenerator):
@@ -138,6 +152,28 @@ class FlDictIterator(Iterator):
                                              shuffle,
                                              seed)
 
+    def _get_pil_img(self, fname):
+        # read img
+        img = load_img(fname,
+                       color_mode=self.color_mode
+                       )  # resize later
+        # crop
+        if self.use_bbox is True:
+            base_fn = os.path.basename(fname)
+            box = get_bbox(base_fn)
+            x0, y0, x1, y1 = expand_bb(img, box, CROP_MARGIN)
+            if not (x0 >= x1 or y0 >= y1):
+                tmp_box = (x0, y0, x1, y1)
+                img.crop(tmp_box)
+
+        # to array
+        x = img_to_array(img, data_format=self.data_format)
+        # Pillow images should be closed after `load_img`,
+        # but not PIL images.
+        if hasattr(img, 'close'):
+            img.close()
+        return x
+
     def _get_batches_of_transformed_samples(self, index_array):
         batch_x = np.zeros(
             (len(index_array),) + self.image_shape,
@@ -145,20 +181,7 @@ class FlDictIterator(Iterator):
         # build batch of image data
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
-            img = load_img(fname,
-                           color_mode=self.color_mode
-                           )  # resize later
-            if self.use_bbox is True:
-                base_fn = os.path.basename(fname)
-                x0, y0, x1, y1 = get_bbox(base_fn)
-                if not (x0 >= x1 or y0 >= y1):
-                    tmp_box = (x0, y0, x1, y1)
-                    img.crop(tmp_box)
-            x = img_to_array(img, data_format=self.data_format)
-            # Pillow images should be closed after `load_img`,
-            # but not PIL images.
-            if hasattr(img, 'close'):
-                img.close()
+            x = self._get_pil_img(fname)
             params = self.image_data_generator.get_random_transform(x.shape)
             x = self.image_data_generator.apply_transform(x, params)
             x = imresize(x, size=self.target_size, interp=self.interpolation)  # resize after random transforms
@@ -194,7 +217,7 @@ class FlDictIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
 
-class FlSimaeseDictIterator(Iterator):
+class FlSimaeseDictIterator(FlDictIterator):
     def __init__(self, cls_fp_dict, image_data_generator,
                  target_size=(256, 256), color_mode='rgb',
                  classes=None, class_mode='categorical',
@@ -292,28 +315,6 @@ class FlSimaeseDictIterator(Iterator):
                                                     shuffle,
                                                     seed)
 
-    def _get_pil_img(self, fname):
-        # read img
-        img = load_img(fname,
-                       color_mode=self.color_mode
-                       )  # resize later
-        # crop
-        if self.use_bbox is True:
-            base_fn = os.path.basename(fname)
-            x0, y0, x1, y1 = get_bbox(base_fn)
-            if not (x0 >= x1 or y0 >= y1):
-                tmp_box = (x0, y0, x1, y1)
-                img.crop(tmp_box)
-                img.load()
-
-        # to array
-        x = img_to_array(img, data_format=self.data_format)
-        # Pillow images should be closed after `load_img`,
-        # but not PIL images.
-        if hasattr(img, 'close'):
-            img.close()
-        return x
-
     def _get_batches_of_transformed_samples(self, index_array):
         # init x
         batch_size = len(index_array)
@@ -367,17 +368,6 @@ class FlSimaeseDictIterator(Iterator):
         batch_x1, batch_x2, batch_y = shuffle(batch_x1, batch_x2, batch_y)
 
         return [batch_x1, batch_x2], batch_y
-
-    def next(self):
-        """For python 2.x.
-        # Returns
-            The next batch.
-        """
-        with self.lock:
-            index_array = next(self.index_generator)
-        # The transformation of images is not under thread lock
-        # so it can be done in parallel
-        return self._get_batches_of_transformed_samples(index_array)
 
 
 def split_train_test_dict(all_data_d, test_rate=0.2, duplicate_low_cls=True):

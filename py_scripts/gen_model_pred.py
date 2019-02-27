@@ -14,7 +14,7 @@ import json
 import pickle
 import glob
 import numpy as np
-from utils import preprocess_func, get_bbox
+from utils import preprocess_func, get_bbox, expand_bb
 from keras.preprocessing.image import load_img, img_to_array
 
 ID_TO_LABEL = json.loads(open('../data/id_to_label.json').read())
@@ -27,7 +27,8 @@ def predict_one_img(model, img_path, img_shape):
     img = load_img(img_path)
     # crop
     base_fn = os.path.basename(img_path)
-    x0, y0, x1, y1 = get_bbox(base_fn)
+    box = get_bbox(base_fn)
+    x0, y0, x1, y1 = expand_bb(img, box)
     if not (x0 >= x1 or y0 >= y1):
         tmp_box = (x0, y0, x1, y1)
         img.crop(tmp_box)
