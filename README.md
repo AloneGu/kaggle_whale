@@ -20,4 +20,6 @@ https://www.kaggle.com/vanshjatana/let-s-blend-0-867
 
 ## notes
 
-learn how to build and train simaese network
+learn how to build and train simaese network,
+
+it is good but takes too much time for training.
