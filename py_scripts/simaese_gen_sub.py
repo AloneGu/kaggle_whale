@@ -56,7 +56,7 @@ def get_sim_score(comp_model, train_feats, test_feats, label_cvt):
     p_cnt = 0
     for k, test_f in test_feats:
         # pred for all pairs
-        dup_test_feats = np.array([test_f for i in range(train_cnt)])
+        dup_test_feats = np.tile(test_f, (train_cnt, 1))
         scores = comp_model.predict([pred_train_feat, dup_test_feats])
         # print(scores.shape)
 

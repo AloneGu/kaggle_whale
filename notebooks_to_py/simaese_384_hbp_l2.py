@@ -115,3 +115,30 @@ all_model.fit_generator(
 # Epoch 00004: loss did not improve from 0.15524
 # Epoch 5/100
 # 1000/1000 [==============================] - 2807s 3s/step - loss: 0.1591 - acc: 0.9376 - val_loss: 0.1202 - val_acc: 0.9528
+# private score: 0.422
+
+# Epoch 00026: ReduceLROnPlateau reducing learning rate to 3.7500001781154424e-05.
+#
+# Epoch 00026: val_loss improved from 0.05595 to 0.05519, saving model to ../data/checkpoints/mob_384_sim_hbp.h5
+#
+# Epoch 00026: loss did not improve from 0.07383
+# Epoch 27/300
+#  - 2436s - loss: 0.0776 - acc: 0.9708 - val_loss: 0.0564 - val_acc: 0.9809
+#
+# Epoch 00027: val_loss did not improve from 0.05519
+#
+# Epoch 00027: loss did not improve from 0.07383
+# Epoch 28/300
+#  - 2443s - loss: 0.0731 - acc: 0.9728 - val_loss: 0.0610 - val_acc: 0.9753
+#
+# Epoch 00028: val_loss did not improve from 0.05519
+#
+# Epoch 00028: loss improved from 0.07383 to 0.07284, saving model to ../data/checkpoints/mob_384_sim_hbp_best_train_loss.h5
+# Epoch 29/300
+#  - 2440s - loss: 0.0709 - acc: 0.9738 - val_loss: 0.0517 - val_acc: 0.9812
+#
+# Epoch 00029: val_loss improved from 0.05519 to 0.05166, saving model to ../data/checkpoints/mob_384_sim_hbp.h5
+#
+# Epoch 00029: loss improved from 0.07284 to 0.07089, saving model to ../data/checkpoints/mob_384_sim_hbp_best_train_loss.h5
+# Epoch 30/300
+# private score: 0.497
